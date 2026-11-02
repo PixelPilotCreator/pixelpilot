@@ -47,7 +47,21 @@ hooks: array of 6 distinct opening hooks;
 titles: array of 6 clickable but accurate titles;
 script: a single string containing the COMPLETE spoken script;
 calendar: array of 7 specific production/publishing tasks;
-checklist: array of 10 actionable production checks.
+checklist: array of 10 actionable production checks;
+seo: object with EXACTLY these keys:
+description: ready-to-paste YouTube description, 2 concise paragraphs, natural primary keyword early, compelling benefit, gentle subscribe CTA; avoid fake links and unverifiable promises;
+tags: array of 10-15 specific, relevant keyword phrases (not hashtags), total comma-separated length <= 450 characters;
+hashtags: array of 3-5 relevant hashtags each starting with #;
+thumbnails: array of exactly 3 objects, each with text (2-5 words, no misleading claims), concept (specific visual composition), and why (one sentence explaining appeal);
+chapters: array of 4-7 objects, each with time in MM:SS and title, matching the actual script's structure and approximate duration; first time must be 00:00. For Shorts, chapters should be an empty array;
+publishing: array of 6 concrete pre-publish checks, including verifying claims, rights, title/thumbnail consistency, description, captions and platform settings.
+
+SEO QUALITY RULES:
+- Never guarantee views, ranking or virality; keyword relevance matters more than stuffing.
+- Do not invent URLs, citations, affiliate offers, sponsorships, product features or video footage.
+- Descriptions, tags and thumbnails must accurately reflect the actual script, not just the broad topic.
+- Suggested chapters are approximate until the creator times the final edited recording.
+- Keep SEO concise so the complete spoken script receives most output tokens.
 
 SCRIPT QUALITY RULES:
 - Write fully spoken dialogue, not an outline. No filler such as "explain this here", "discuss topic", or "insert example".
@@ -66,11 +80,18 @@ SCRIPT QUALITY RULES:
   const userPrompt=JSON.stringify({topic,audience,style,goal,format,duration});
   const model=process.env.GEMINI_MODEL||'gemini-3.5-flash-lite';
   const gemini=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent',{
-    method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':process.env.GEMINI_API_KEY},body:JSON.stringify({systemInstruction:{parts:[{text:instructions}]},contents:[{role:'user',parts:[{text:userPrompt}]}],generationConfig:{responseMimeType:'application/json',maxOutputTokens:6500,temperature:0.8}}),signal:AbortSignal.timeout(45000)});
+    method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':process.env.GEMINI_API_KEY},body:JSON.stringify({systemInstruction:{parts:[{text:instructions}]},contents:[{role:'user',parts:[{text:userPrompt}]}],generationConfig:{responseMimeType:'application/json',maxOutputTokens:8500,temperature:0.8}}),signal:AbortSignal.timeout(45000)});
   const reply=await gemini.json();if(!gemini.ok){console.error('Gemini API error',gemini.status,JSON.stringify(reply).slice(0,250));return respond(502,{error:gemini.status===429?'AI provider free-tier capacity reached. Please try later.':'AI provider could not complete your request. Please try later.',remaining:Math.max(0,limit-used),limit,admin});}
   const raw=reply.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
   let result;try{result=JSON.parse(raw);}catch(e){return respond(502,{error:'AI response was cut off. Try a shorter video length or try again later.',remaining:Math.max(0,limit-used),limit,admin});}
-  const fields=['ideas','hooks','titles','calendar','checklist'];if(!fields.every(k=>Array.isArray(result[k])&&result[k].length>0&&result[k].every(x=>typeof x==='string'))||typeof result.script!=='string')return respond(502,{error:'AI returned an unexpected format. Please try again later.',remaining:Math.max(0,limit-used),limit,admin});
-  return respond(200,{data:Object.fromEntries([...fields,'script'].map(k=>[k,result[k]])),remaining:Math.max(0,limit-used),limit,admin});
+  const seo=result.seo;
+  const seoValid=seo&&typeof seo==='object'&&typeof seo.description==='string'&&
+   ['tags','hashtags','thumbnails','chapters','publishing'].every(k=>Array.isArray(seo[k]))&&
+   seo.tags.every(x=>typeof x==='string')&&seo.hashtags.every(x=>typeof x==='string')&&
+   seo.publishing.every(x=>typeof x==='string')&&
+   seo.thumbnails.every(x=>x&&typeof x.text==='string'&&typeof x.concept==='string'&&typeof x.why==='string')&&
+   seo.chapters.every(x=>x&&typeof x.time==='string'&&typeof x.title==='string');
+  const fields=['ideas','hooks','titles','calendar','checklist'];if(!fields.every(k=>Array.isArray(result[k])&&result[k].length>0&&result[k].every(x=>typeof x==='string'))||typeof result.script!=='string'||!seoValid)return respond(502,{error:'AI returned an unexpected format. Please try again later.',remaining:Math.max(0,limit-used),limit,admin});
+  return respond(200,{data:Object.fromEntries([...fields,'script','seo'].map(k=>[k,result[k]])),remaining:Math.max(0,limit-used),limit,admin});
  }catch(e){console.error('Generation error',e.message);return respond(503,{error:'AI service temporarily unavailable. Please try again later.'});}
 };
