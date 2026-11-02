@@ -47,6 +47,12 @@ main,footer{margin-left:248px}#dashboardShell{padding:40px 0 20px}.dashheadline{
 #billingHub .pricing{grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-top:25px}#billingHub .pricecard{padding:22px 18px;display:flex;flex-direction:column}#billingHub .pricecard ul{min-height:0;flex:1}#billingHub .price{font-size:36px}#billingHub .pricecard button:disabled{cursor:not-allowed;opacity:.6;transform:none}#billingHub .pricecard p{min-height:52px}#billingHub .pricecard .btn{margin-top:16px}
 .billing-foot{color:var(--muted);font-size:13px;line-height:1.7;margin-top:20px}.billing-foot b{color:#e6f0e7}
 @media(max-width:1180px){#billingHub .pricing{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:680px){#billingHub .pricing{grid-template-columns:1fr}#billingHub .pricecard p{min-height:0}}
+
+/* V10 account foundation */
+.account-panel{background:#111b14;border:1px solid #35523b;border-radius:18px;padding:24px;max-width:720px;margin:22px 0}
+.account-panel input{width:100%;margin:6px 0 13px;padding:13px;border-radius:10px;background:#0b130d;color:#fff;border:1px solid #345039}
+.account-panel label{display:block;font-size:13px;color:#b4c9b8}.account-actions{display:flex;gap:10px;flex-wrap:wrap}
+.account-note{font-size:13px;color:#a9bdad;line-height:1.6}
 </style>
 </head>
 <body><aside id="appSidebar" aria-label="Main navigation"><div class="sidebrand"><div class="logo">P</div><span>Pixel<span>Pilot</span></span></div><div class="sidecaption">WORKSPACE</div>
@@ -55,7 +61,7 @@ main,footer{margin-left:248px}#dashboardShell{padding:40px 0 20px}.dashheadline{
 <button class="sidebtn" data-view="projects"><span class="ico">▤</span> My Projects</button>
 <button class="sidebtn" data-view="calendar"><span class="ico">▦</span> Calendar</button>
 <button class="sidebtn" data-view="analytics"><span class="ico">▥</span> Analytics</button>
-<button class="sidebtn" data-view="billing"><span class="ico">◇</span> Billing &amp; Plans</button>
+<button class="sidebtn" data-view="account"><span class="ico">♙</span> My Account</button><button class="sidebtn" data-view="billing"><span class="ico">◇</span> Billing &amp; Plans</button>
 <button class="sidebtn" data-view="settings"><span class="ico">⚙</span> Settings</button>
 <div class="sidebottom"><strong>✦ Creator workspace</strong>Generate. Edit. Organize. Publish.<br><br><span style="color:#8fa293">Projects stay on this device. Export backups regularly.</span></div></aside>
 <header><div class="wrap nav"><a class="brand" href="#"><div class="logo">P</div><div>Pixel<span>Pilot</span></div></a><button class="navcta" type="button" onclick="navigate('generator')">+ New project</button></div></header>
@@ -66,8 +72,8 @@ main,footer{margin-left:248px}#dashboardShell{padding:40px 0 20px}.dashheadline{
 <section class="view" id="projectHub"><div class="wrap"><div class="eyebrow">LIBRARY</div><h2 class="hubtitle">My Projects</h2><p class="hubsub">Organize scripts, edit project status, and jump back into Script Studio.</p><div class="hubtoolbar"><input id="projectSearch" placeholder="Search projects by name or topic" aria-label="Search projects"><select id="projectFilter" aria-label="Filter projects by status"><option value="all">All statuses</option><option>Idea</option><option>Writing</option><option>Ready to Record</option><option>Editing</option><option>Published</option></select><button onclick="navigate('generator')">+ New project</button></div><div class="projectgrid" id="projectGrid"></div></div></section>
 <section class="view" id="calendarHub"><div class="wrap"><div class="eyebrow">PLANNING</div><h2 class="hubtitle">Content Calendar</h2><p class="hubsub">Schedule uploads and track what you're planning to publish. Stored locally.</p><form class="hubform" id="calendarForm"><label>Video title<input id="calTitle" required maxlength="120" placeholder="Your next upload"></label><label>Planned publish date<input id="calDate" type="date" required></label><label class="wide">Related project (optional)<select id="calProject"><option value="">No project linked</option></select></label><div class="wide"><button class="btn" type="submit">+ Schedule upload</button></div></form><div class="calendarlist" id="calendarList"></div></div></section>
 <section class="view" id="analyticsHub"><div class="wrap"><div class="eyebrow">PROGRESS</div><h2 class="hubtitle">Creator Analytics</h2><p class="hubsub">Your planning activity and publishing progress, based on local projects—not YouTube performance data.</p><div class="dashgrid" id="analyticsMetrics"></div><div class="dashpanel" style="margin-top:18px"><h3>Project pipeline</h3><div id="pipeline"></div></div></div></section>
-<section class="view" id="billingHub"><div class="wrap"><div class="eyebrow">PIXELPILOT MEMBERSHIP</div><h2 class="hubtitle">Plans built for every creator<span class="accent">.</span></h2><p class="billing-intro">Start free, then grow with more monthly AI generations. Free users can try script generation. Premium publishing tools are planned for Pro and Studio. This page previews upcoming memberships; checkout and paid feature enforcement are not active yet.</p>
-<div class="billing-banner"><strong>✦ Your current access: Free plan</strong><div style="margin-top:6px">3 AI generations per day, subject to sitewide and provider limits. Premium restrictions shown in the cards are planned, not enforced yet; no payment will be collected on this page.</div></div>
+<section class="view" id="accountHub"><div class="wrap"><div class="eyebrow">PIXELPILOT ACCOUNT</div><h2 class="hubtitle">Your creator account<span class="accent">.</span></h2><div class="account-panel"><p id="accountStatus">Account sign-in is not configured yet.</p><div id="accountForms"><label>Email address<input id="accountEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@example.com"></label><label>Password (at least 8 characters)<input id="accountPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128"></label><div class="account-actions"><button class="btn" type="button" onclick="accountSignIn()">Sign in</button><button class="btn secondary" type="button" onclick="accountSignUp()">Create account</button><button class="btn secondary" type="button" onclick="accountResetPassword()">Reset password</button></div></div><div id="accountSignedIn" style="display:none"><button class="btn secondary" type="button" onclick="accountSignOut()">Sign out</button></div><p class="account-note">Accounts use Supabase Auth. Project files and calendars still live only in this browser—signing in does not synchronize them. Paid subscriptions are not active yet, and all accounts currently receive free access. Never enter your Netlify admin testing token here.</p></div></div></section><section class="view" id="billingHub"><div class="wrap"><div class="eyebrow">PIXELPILOT MEMBERSHIP</div><h2 class="hubtitle">Plans built for every creator<span class="accent">.</span></h2><p class="billing-intro">Create a free account and preview future subscription tiers. Paid subscriptions are not yet available.  Free users can try script generation. Premium publishing tools are planned for Pro and Studio. This page previews upcoming memberships; checkout and paid feature enforcement are not active yet.</p>
+<div class="billing-banner"><strong>✦ Your current access: Free plan (subscriptions not active)</strong><div style="margin-top:6px">3 AI generations per day, subject to sitewide and provider limits. Premium restrictions shown in the cards are planned, not enforced yet; no payment will be collected on this page.</div></div>
 <div class="pricing">
 <article class="pricecard"><div class="tier">FREE</div><div class="price">$0 <small>/ month</small></div><p>Try PixelPilot and create your first scripts.</p><ul><li>3 AI generations / day</li><li>Full video scripts &amp; manual editing</li><li>Copy and download scripts</li><li>🔒 SEO Studio (Pro+)</li><li>🔒 Project saving (Creator+)</li><li>🔒 Content calendar (Pro+)</li></ul><button class="btn secondary" type="button" onclick="navigate('generator')">Continue free</button></article>
 <article class="pricecard"><div class="tier">CREATOR</div><div class="price">$10 <small>/ month</small></div><p>Write consistently and build your script library.</p><ul><li>75 AI generations / month</li><li>Full video scripts &amp; editing</li><li>Save up to 25 projects</li><li>Basic project progress tracking</li><li>Copy and export scripts</li><li>🔒 SEO Studio &amp; calendar (Pro+)</li></ul><button class="btn secondary" type="button" disabled>Coming soon</button></article>
@@ -111,6 +117,71 @@ main,footer{margin-left:248px}#dashboardShell{padding:40px 0 20px}.dashheadline{
 </div></div></section>
 </main><div id="workspace" role="dialog" aria-modal="true" aria-labelledby="workspaceTitle"><div class="workspaceinner"><div class="worktop"><div><h2 id="workspaceTitle">PixelPilot Script Studio</h2><div class="workmeta" id="workmeta">Edit your script</div></div><div class="editorbar"><button class="btn secondary" onclick="copyEditor()">Copy script</button><button class="btn secondary" onclick="downloadScript()">Download .txt</button><button class="btn" onclick="saveProject()">Save project</button><button class="btn secondary" onclick="closeWorkspace()">✕ Close</button></div></div><textarea class="scriptedit" id="scriptEditor" aria-label="Edit your YouTube script" spellcheck="true"></textarea><p class="editorhint">Manual edits are free. Save your project to keep changes in this browser. Export backups before clearing browser data.</p></div></div>
 <footer><div class="wrap foot"><div class="brand"><div class="logo">P</div><div>Pixel<span>Pilot</span></div></div><div>© <span id="year"></span> PixelPilot. Create with intention.</div></div></footer>
+<script src="/config.js"></script>
+
+<script>
+/* V10: Supabase Auth via public REST endpoints. No service-role key in browser. */
+const PP_AUTH_URL=(window.PIXELPILOT_PUBLIC_CONFIG||{}).supabaseUrl||'', PP_ANON_KEY=(window.PIXELPILOT_PUBLIC_CONFIG||{}).supabaseAnonKey||'';
+const PP_AUTH_ENABLED=PP_AUTH_URL.startsWith('https://')&&!PP_AUTH_URL.includes('__')&&PP_ANON_KEY.length>30;
+let ppSession=null;
+function ppAuthHeaders(token){return {'apikey':PP_ANON_KEY,'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})};}
+async function ppAuthRequest(path,method,body,token){
+ const r=await fetch(PP_AUTH_URL+'/auth/v1/'+path,{method,headers:ppAuthHeaders(token),body:body?JSON.stringify(body):undefined});
+ const j=await r.json().catch(()=>({}));
+ if(!r.ok)throw Error(j.msg||j.error_description||j.message||j.error||'Authentication request failed');
+ return j;
+}
+function ppAuthRender(){
+ const status=document.getElementById('accountStatus');if(!status)return;
+ document.getElementById('accountForms').style.display=PP_AUTH_ENABLED&&!ppSession?'block':'none';
+ document.getElementById('accountSignedIn').style.display=ppSession?'block':'none';
+ status.textContent=!PP_AUTH_ENABLED?'Account sign-in requires Supabase configuration. See V10 README.':ppSession?'Signed in: '+(ppSession.user?.email||'Creator')+' · Free access':'Sign in or create your free PixelPilot account.';
+}
+async function ppRefresh(){
+ if(!ppSession?.refresh_token)return false;
+ try{const j=await ppAuthRequest('token?grant_type=refresh_token','POST',{refresh_token:ppSession.refresh_token});ppSession=j;sessionStorage.setItem('pixelpilot-auth',JSON.stringify(j));ppAuthRender();return true}
+ catch(e){ppSession=null;sessionStorage.removeItem('pixelpilot-auth');ppAuthRender();return false}
+}
+async function ppAccessToken(){
+ if(!ppSession)return null;
+ if(Date.now()>=(ppSession.expires_at||0)*1000-60000)await ppRefresh();
+ return ppSession?.access_token||null;
+}
+async function ppRestore(){
+ if(!PP_AUTH_ENABLED)return ppAuthRender();
+ try{ppSession=JSON.parse(sessionStorage.getItem('pixelpilot-auth')||'null')}catch(e){ppSession=null}
+ if(ppSession){if(Date.now()>=(ppSession.expires_at||0)*1000-60000)await ppRefresh();else{
+ try{const user=await ppAuthRequest('user','GET',null,ppSession.access_token);ppSession.user=user;}catch(e){await ppRefresh();}
+ }}
+ ppAuthRender();
+}
+async function accountSignIn(){
+ if(!PP_AUTH_ENABLED)return alert('Configure Supabase first.');
+ try{const email=document.getElementById('accountEmail').value.trim(),password=document.getElementById('accountPassword').value;
+ const j=await ppAuthRequest('token?grant_type=password','POST',{email,password});
+ j.expires_at=Math.floor(Date.now()/1000)+(j.expires_in||3600);ppSession=j;sessionStorage.setItem('pixelpilot-auth',JSON.stringify(j));ppAuthRender();alert('Signed in successfully!');}
+ catch(e){alert(e.message)}
+}
+async function accountSignUp(){
+ if(!PP_AUTH_ENABLED)return alert('Configure Supabase first.');
+ try{const email=document.getElementById('accountEmail').value.trim(),password=document.getElementById('accountPassword').value;
+ if(password.length<8)return alert('Choose a password with at least 8 characters.');
+ const j=await ppAuthRequest('signup','POST',{email,password});
+ if(j.access_token){j.expires_at=Math.floor(Date.now()/1000)+(j.expires_in||3600);ppSession=j;sessionStorage.setItem('pixelpilot-auth',JSON.stringify(j))}
+ ppAuthRender();alert(j.access_token?'Account created!':'Check your email to confirm your account, then sign in.');}
+ catch(e){alert(e.message)}
+}
+async function accountResetPassword(){
+ if(!PP_AUTH_ENABLED)return alert('Configure Supabase first.');
+ const email=document.getElementById('accountEmail').value.trim();if(!email)return alert('Enter your email address first.');
+ try{await ppAuthRequest('recover','POST',{email});alert('If this email has an account, a recovery email will be sent.');}catch(e){alert(e.message)}
+}
+async function accountSignOut(){
+ if(ppSession?.access_token)await ppAuthRequest('logout','POST',null,ppSession.access_token).catch(()=>{});
+ ppSession=null;sessionStorage.removeItem('pixelpilot-auth');ppAuthRender();
+}
+ppRestore();
+</script>
 <script>
 const state={data:null,tab:'ideas',package:''};
 let adminToken='';
@@ -118,7 +189,7 @@ function setQuota(j){if(Number.isInteger(j.remaining))$('remaining').textContent
 async function verifyAdmin(){
  const t=$('adminToken').value.trim();
  if(t.length<32){$('adminStatus').textContent='Token must be at least 32 characters.';return;}
- try{const r=await fetch('/.netlify/functions/generate',{headers:{'x-pixelpilot-admin-token':t}});const j=await r.json();
+ try{const auth=await ppAccessToken();const r=await fetch('/.netlify/functions/generate',{headers:{'x-pixelpilot-admin-token':t,...(auth?{'Authorization':'Bearer '+auth}:{})}});const j=await r.json();
  if(r.ok&&j.admin===true){adminToken=t;$('adminToken').value='';$('adminStatus').textContent='✓ Admin testing enabled for this tab. Separate 12/day allowance; sitewide cap still applies.';setQuota(j);}
  else{$('adminStatus').textContent='Token not recognized. Check ADMIN_TEST_TOKEN in Netlify and redeploy.';}
  }catch(e){$('adminStatus').textContent='Unable to verify token. Try again.';}
@@ -134,7 +205,7 @@ async function generate(){
  const audience=$('audience').value.trim()||'curious beginners',style=$('style').value,goal=$('goal').value,format=$('format').value,duration=Number($('duration').value);
  const btn=document.querySelector('.controls .btn');btn.disabled=true;btn.textContent='Generating with AI…';$('result').textContent='Creating your content plan. This can take a few seconds.';
  try{
-  const res=await fetch('/.netlify/functions/generate',{method:'POST',headers:{'Content-Type':'application/json',...(adminToken?{'x-pixelpilot-admin-token':adminToken}:{})},body:JSON.stringify({topic,audience,style,goal,format,duration})});
+  const auth=await ppAccessToken();const res=await fetch('/.netlify/functions/generate',{method:'POST',headers:{'Content-Type':'application/json',...(auth?{'Authorization':'Bearer '+auth}:{}),...(adminToken?{'x-pixelpilot-admin-token':adminToken}:{})},body:JSON.stringify({topic,audience,style,goal,format,duration})});
   const payload=await res.json().catch(()=>({error:'Unexpected server response.'}));
   setQuota(payload);
   if(!res.ok)throw new Error(payload.error||'Generation failed.');
@@ -143,10 +214,10 @@ async function generate(){
   $('outputTitle').textContent='Your AI content plan: '+topic;showTab(state.tab);
  }catch(e){$('result').textContent='Could not generate: '+e.message;}finally{btn.disabled=false;btn.textContent='Generate script + SEO kit →';}
 }
-async function loadQuota(){try{const r=await fetch('/.netlify/functions/generate',{headers:adminToken?{'x-pixelpilot-admin-token':adminToken}:{}});if(r.ok){const j=await r.json();setQuota(j);}}catch(e){}}
+async function loadQuota(){try{const auth=await ppAccessToken();const r=await fetch('/.netlify/functions/generate',{headers:{...(auth?{'Authorization':'Bearer '+auth}:{}),...(adminToken?{'x-pixelpilot-admin-token':adminToken}:{})}});if(r.ok){const j=await r.json();setQuota(j);}}catch(e){}}
 function seoText(){
  const s=state.data?.seo;
- if(!s)return 'SEO Studio is available for newly generated V7 scripts. Your older projects remain available.';
+ if(!s)return '🔒 YouTube SEO Studio is a Pro feature. It is unavailable on Free accounts. Upgrade checkout is not active yet; existing saved SEO projects remain available.';
  const thumbs=Array.isArray(s.thumbnails)?s.thumbnails:[];
  const chapters=Array.isArray(s.chapters)?s.chapters:[];
  return ['YOUTUBE SEO STUDIO','', 'DESCRIPTION',s.description||'','',
@@ -197,7 +268,7 @@ function projectStatuses(){const x=readLocal(statusKey,{});return x&&typeof x===
 function projectStatus(id){return projectStatuses()[id]||'Idea'}
 function updateStatus(id,value){if(!statuses.includes(value))return;const s=projectStatuses();s[id]=value;try{localStorage.setItem(statusKey,JSON.stringify(s))}catch(e){alert('Could not save status.')}refreshDashboard()}
 function calendarEntries(){const x=readLocal(calendarKey,[]);return Array.isArray(x)?x:[]}
-function navigate(view){const ids={dashboard:'dashboardShell',generator:'generator',projects:'projectHub',calendar:'calendarHub',analytics:'analyticsHub',billing:'billingHub',settings:'settingsHub'};if(!ids[view])return;document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===ids[view]));document.querySelectorAll('.sidebtn').forEach(x=>x.classList.toggle('active',x.dataset.view===view));if(view==='projects')renderProjectHub();if(view==='calendar')renderCalendar();if(view==='analytics')renderAnalytics();if(view==='dashboard')refreshDashboard();window.scrollTo({top:0,behavior:'smooth'});}
+function navigate(view){const ids={dashboard:'dashboardShell',generator:'generator',projects:'projectHub',calendar:'calendarHub',analytics:'analyticsHub',billing:'billingHub',account:'accountHub',settings:'settingsHub'};if(!ids[view])return;document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===ids[view]));document.querySelectorAll('.sidebtn').forEach(x=>x.classList.toggle('active',x.dataset.view===view));if(view==='projects')renderProjectHub();if(view==='calendar')renderCalendar();if(view==='analytics')renderAnalytics();if(view==='dashboard')refreshDashboard();window.scrollTo({top:0,behavior:'smooth'});}
 document.querySelectorAll('.sidebtn').forEach(x=>x.addEventListener('click',()=>navigate(x.dataset.view)));
 function refreshDashboard(){const p=projects(),s=projectStatuses(),c=calendarEntries();$('metricProjects').textContent=p.length;$('metricReady').textContent=p.filter(x=>s[x.id]==='Ready to Record').length;$('metricPublished').textContent=p.filter(x=>s[x.id]==='Published').length;const today=new Date();today.setHours(0,0,0,0);$('metricUpcoming').textContent=c.filter(x=>new Date(x.date+'T00:00:00')>=today).length;
 $('dashRecent').innerHTML=p.length?p.slice(0,5).map(x=>`<div class="dashitem"><div><b>${esc(x.name||x.data.topic)}</b><small>${esc(projectStatus(x.id))} · ${new Date(x.savedAt||x.id).toLocaleDateString()}</small></div><button data-open="${x.id}">Open →</button></div>`).join(''):'<div class="hubempty">No projects yet. Start by generating your first script.</div>';

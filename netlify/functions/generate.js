@@ -17,6 +17,20 @@ function isAdmin(event){
  if(!configured||configured.length<32||typeof supplied!=='string'||supplied.length!==configured.length)return false;
  return crypto.timingSafeEqual(Buffer.from(configured),Buffer.from(supplied));
 }
+async function verifiedUser(event){
+ const header=event.headers.authorization||event.headers.Authorization||'';
+ if(!header.startsWith('Bearer '))return null;
+ const url=process.env.SUPABASE_URL,anon=process.env.SUPABASE_ANON_KEY;
+ if(!url||!anon)return null;
+ const token=header.slice(7);
+ if(token.length>4096||!token)return null;
+ try{
+  const r=await fetch(url.replace(/\/$/,'')+'/auth/v1/user',{headers:{apikey:anon,Authorization:'Bearer '+token},signal:AbortSignal.timeout(5000)});
+  if(!r.ok)return null;
+  const user=await r.json();
+  return typeof user.id==='string'?{id:user.id,email:user.email||''}:null;
+ }catch(e){return null}
+}
 function validString(s,max){return typeof s==='string'&&s.trim().length>0&&s.trim().length<=max;}
 exports.handler=async(event)=>{
  if(!['GET','POST'].includes(event.httpMethod))return respond(405,{error:'Method not allowed'});
@@ -24,11 +38,12 @@ exports.handler=async(event)=>{
  if(needed.some(k=>!process.env[k]))return respond(503,{error:'AI service not configured yet. Site owner: follow README setup instructions.'});
  const ip=getIP(event);if(!ip)return respond(503,{error:'Unable to verify visitor network address. Please try again later.'});
  const today=new Date().toISOString().slice(0,10),admin=isAdmin(event);
+ const user=await verifiedUser(event); // Validated by Supabase, never trusted from client-provided claims.
  const userKey=admin?'pixelpilot:admin:'+today:keyFor(ip,today);
  const limit=admin?ADMIN_LIMIT:LIMIT;
  const globalKey='pixelpilot:global:'+today;
  try{
-  if(event.httpMethod==='GET'){const used=await count(userKey);return respond(200,{remaining:Math.max(0,limit-used),limit,admin,resets:'00:00 UTC'});}
+  if(event.httpMethod==='GET'){const used=await count(userKey);return respond(200,{remaining:Math.max(0,limit-used),limit,admin,authenticated:!!user,plan:'free',resets:'00:00 UTC'});}
   if((event.body||'').length>3000)return respond(413,{error:'Request is too large.'});
   let body;try{body=JSON.parse(event.body||'{}');}catch(e){return respond(400,{error:'Invalid request JSON.'});}
   const {topic,audience,style,goal,format,duration}=body;
@@ -123,6 +138,10 @@ SCRIPT QUALITY RULES:
   if(!result.calendar.length)result.calendar=['Review and edit script','Record and publish'];
   if(!result.checklist.length)result.checklist=['Fact-check the script','Review the final video'];
   result.seo=seo;
-  return respond(200,{data:Object.fromEntries([...fields,'script','seo'].map(k=>[k,result[k]])),remaining:Math.max(0,limit-used),limit,admin});
+  // Paid plans are not yet activated. Never trust browser plan claims.
+  // SEO is a premium preview feature for owner testing only.
+  const data=Object.fromEntries([...fields,'script'].map(k=>[k,result[k]]));
+  if(admin)data.seo=seo;
+  return respond(200,{data,remaining:Math.max(0,limit-used),limit,admin,authenticated:!!user,plan:'free',premiumLocked:!admin});
  }catch(e){console.error('Generation error',e.message);return respond(503,{error:'AI service temporarily unavailable. Please try again later.'});}
 };
