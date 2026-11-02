@@ -84,14 +84,45 @@ SCRIPT QUALITY RULES:
   const reply=await gemini.json();if(!gemini.ok){console.error('Gemini API error',gemini.status,JSON.stringify(reply).slice(0,250));return respond(502,{error:gemini.status===429?'AI provider free-tier capacity reached. Please try later.':'AI provider could not complete your request. Please try later.',remaining:Math.max(0,limit-used),limit,admin});}
   const raw=reply.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
   let result;try{result=JSON.parse(raw);}catch(e){return respond(502,{error:'AI response was cut off. Try a shorter video length or try again later.',remaining:Math.max(0,limit-used),limit,admin});}
-  const seo=result.seo;
-  const seoValid=seo&&typeof seo==='object'&&typeof seo.description==='string'&&
-   ['tags','hashtags','thumbnails','chapters','publishing'].every(k=>Array.isArray(seo[k]))&&
-   seo.tags.every(x=>typeof x==='string')&&seo.hashtags.every(x=>typeof x==='string')&&
-   seo.publishing.every(x=>typeof x==='string')&&
-   seo.thumbnails.every(x=>x&&typeof x.text==='string'&&typeof x.concept==='string'&&typeof x.why==='string')&&
-   seo.chapters.every(x=>x&&typeof x.time==='string'&&typeof x.title==='string');
-  const fields=['ideas','hooks','titles','calendar','checklist'];if(!fields.every(k=>Array.isArray(result[k])&&result[k].length>0&&result[k].every(x=>typeof x==='string'))||typeof result.script!=='string'||!seoValid)return respond(502,{error:'AI returned an unexpected format. Please try again later.',remaining:Math.max(0,limit-used),limit,admin});
+  // Gemini may omit optional SEO subfields or return stringified arrays.
+  // Keep valid scripts rather than rejecting the entire generation.
+  const asList=(value)=>Array.isArray(value)?value.filter(x=>typeof x==='string').map(x=>x.trim()).filter(Boolean):
+    typeof value==='string'?value.split(/\n|,/).map(x=>x.trim()).filter(Boolean):[];
+  const script=typeof result.script==='string'?result.script.trim():'';
+  if(!script || script.length<120){
+    console.warn('Gemini response missing usable script; keys:',Object.keys(result||{}).join(','));
+    return respond(502,{error:'AI did not return a usable script. Try a shorter length.',remaining:Math.max(0,limit-used),limit,admin});
+  }
+  const fields=['ideas','hooks','titles','calendar','checklist'];
+  for(const k of fields)result[k]=asList(result[k]);
+  const seoRaw=result.seo&&typeof result.seo==='object'&&!Array.isArray(result.seo)?result.seo:{};
+  const thumbnails=Array.isArray(seoRaw.thumbnails)?seoRaw.thumbnails.map(x=>{
+    if(typeof x==='string')return {text:x.slice(0,60),concept:x,why:'Matches the video topic.'};
+    if(!x||typeof x!=='object')return null;
+    return {text:String(x.text||x.title||'Thumbnail idea'),concept:String(x.concept||x.visual||x.description||'Visual concept to develop'),why:String(x.why||x.reason||'Designed to reflect the video topic.')};
+  }).filter(Boolean):[];
+  const chapters=Array.isArray(seoRaw.chapters)?seoRaw.chapters.map(x=>{
+    if(typeof x==='string'){
+      const match=x.match(/^(\d{1,2}:\d{2})\s*[-–]?\s*(.*)$/);
+      return match?{time:match[1],title:match[2]||'Chapter'}:null;
+    }
+    if(!x||typeof x!=='object')return null;
+    return {time:String(x.time||x.timestamp||'00:00'),title:String(x.title||x.name||'Chapter')};
+  }).filter(Boolean):[];
+  const seo={
+    description:String(seoRaw.description||seoRaw.videoDescription||'Description not supplied by AI. Review the script and write an accurate summary before publishing.'),
+    tags:asList(seoRaw.tags||seoRaw.keywords),
+    hashtags:asList(seoRaw.hashtags).map(x=>x.startsWith('#')?x:'#'+x.replace(/\s+/g,'')),
+    thumbnails,chapters,
+    publishing:asList(seoRaw.publishing||seoRaw.publishingChecklist)
+  };
+  if(!seo.publishing.length)seo.publishing=['Fact-check claims and sources','Confirm title and thumbnail accurately match the video','Review music and footage rights','Check captions','Confirm description and links','Review upload visibility and audience settings'];
+  if(!result.ideas.length)result.ideas=[topic];
+  if(!result.hooks.length)result.hooks=[script.slice(0,160)];
+  if(!result.titles.length)result.titles=[topic];
+  if(!result.calendar.length)result.calendar=['Review and edit script','Record and publish'];
+  if(!result.checklist.length)result.checklist=['Fact-check the script','Review the final video'];
+  result.seo=seo;
   return respond(200,{data:Object.fromEntries([...fields,'script','seo'].map(k=>[k,result[k]])),remaining:Math.max(0,limit-used),limit,admin});
  }catch(e){console.error('Generation error',e.message);return respond(503,{error:'AI service temporarily unavailable. Please try again later.'});}
 };
