@@ -97,7 +97,7 @@ main,footer{margin-left:248px}#dashboardShell{padding:40px 0 20px}.dashheadline{
 <div class="card"><div class="featureicon">⇩</div><h3>Copy & export</h3><p>Take your results with you. Copy the content or save it as a text file.</p></div>
 </div></div></section>
 
-<section class="section view" id="generator"><div class="wrap"><div class="sectionhead"><div class="eyebrow">TRY IT OUT</div><h2>Create your next YouTube script.</h2><p>Enter your topic and channel style to generate a spoken-word script and content plan. Results include a script and SEO kit in one Gemini AI request, with a limit of 3 requests per day per network address. Longer outputs may take more time or occasionally fail.</p></div>
+<section class="section view" id="generator"><div class="wrap"><div class="sectionhead"><div class="eyebrow">TRY IT OUT</div><h2>Create your next YouTube script.</h2><p>Enter your topic and channel style to generate a spoken-word script and content plan. Free accounts have 3 daily AI requests; paid subscriptions have account-based monthly allowances. See your live usage meter below. Longer outputs may take more time or occasionally fail.</p></div>
 <div class="generator"><div class="controls"><h3 style="margin:0">Your creator brief</h3>
 <label for="topic">Topic or niche</label><input id="topic" maxlength="120" placeholder="e.g. beginner woodworking tips">
 <label for="audience">Target audience</label><input id="audience" maxlength="120" placeholder="e.g. new DIY hobbyists">
@@ -107,7 +107,7 @@ main,footer{margin-left:248px}#dashboardShell{padding:40px 0 20px}.dashheadline{
 <label for="goal">Main goal</label><select id="goal"><option>Teach something useful</option><option>Get more views</option><option>Build community</option><option>Promote a product or service</option></select>
 <button class="btn" style="width:100%;margin-top:20px" onclick="generate()">Generate script + SEO kit →</button>
 <button class="btn secondary" style="width:100%;margin-top:10px" onclick="saveProject()">Save project in this browser</button>
-<details style="margin-top:16px;border:1px solid #34443a;padding:12px;border-radius:10px"><summary style="cursor:pointer;color:#a6ff4d;font-weight:700">Site owner? Enable Admin Testing Mode</summary><p class="notice">Enter your private admin testing token from Netlify. It stays in this tab's memory only, is not saved to the browser, and is never added to the website files.</p><label for="adminToken">Admin testing token</label><input id="adminToken" type="password" autocomplete="off" placeholder="Paste private admin token"/><div class="editorbar"><button type="button" class="btn secondary" onclick="verifyAdmin()">Verify admin access</button><button type="button" class="btn secondary" onclick="disableAdmin()">Disable admin mode</button></div><p class="notice" id="adminStatus" role="status">Admin mode is off.</p></details><p class="notice">AI generations: <strong id="remaining">3</strong> <span id="quotaLabel">of 3 remaining today (UTC)</span>. Projects stay in this browser only. Free usage is limited per network address. Paid usage is tracked per signed-in account.</p>
+<details style="margin-top:16px;border:1px solid #34443a;padding:12px;border-radius:10px"><summary style="cursor:pointer;color:#a6ff4d;font-weight:700">Site owner? Enable Admin Testing Mode</summary><p class="notice">Enter your private admin testing token from Netlify. It stays in this tab's memory only, is not saved to the browser, and is never added to the website files.</p><label for="adminToken">Admin testing token</label><input id="adminToken" type="password" autocomplete="off" placeholder="Paste private admin token"/><div class="editorbar"><button type="button" class="btn secondary" onclick="verifyAdmin()">Verify admin access</button><button type="button" class="btn secondary" onclick="disableAdmin()">Disable admin mode</button></div><p class="notice" id="adminStatus" role="status">Admin mode is off. Owner-only unlimited testing can be enabled in Netlify.</p></details><div id="usageMeter" role="status" aria-live="polite" style="margin:18px 0;padding:17px 19px;border:1px solid #426a40;background:#101c15;border-radius:14px"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><strong id="usagePlan" style="color:#a6ff4d">Checking your allowance…</strong><strong id="usageNumbers">—</strong></div><div style="height:11px;border-radius:20px;background:#29372c;overflow:hidden;margin:13px 0 9px"><div id="usageFill" style="height:100%;width:0%;background:#a6ff4d;transition:width .25s"></div></div><div id="usageDetail" style="font-size:13px;color:#b4c3b5">Loading your current generation usage…</div><button class="btn secondary" type="button" onclick="loadQuota()" style="margin-top:12px">↻ Refresh usage</button></div><p class="notice">Your allowance is verified by the server. Free accounts have 3 generations per day; verified paid accounts have a monthly allowance. Projects stay in this browser only.</p>
 </div><div class="output"><div class="outputhead"><h3 id="outputTitle">Your results will appear here</h3><span class="live" id="selectedPackage"></span></div>
 <div class="tabs"><button class="tab active" data-tab="ideas">Ideas</button><button class="tab" data-tab="hooks">Hooks</button><button class="tab" data-tab="titles">Titles</button><button class="tab" data-tab="script">Script</button><button class="tab" data-tab="calendar">Calendar</button><button class="tab" data-tab="checklist">Checklist</button><button class="tab" data-tab="seo">SEO Studio</button></div>
 <div id="seoTools" class="editorbar" style="display:none"><button class="btn secondary" type="button" onclick="copySEODescription()">Copy description</button><button class="btn secondary" type="button" onclick="copySEOTags()">Copy tags</button><button class="btn secondary" type="button" onclick="downloadSEO()">↓ Download SEO kit</button></div><div id="scriptTools" class="editorbar"  style="display:none"><button class="btn secondary" type="button" onclick="openWorkspace()">⛶ Full-screen script editor</button><button class="btn secondary" type="button" onclick="downloadScript()">↓ Download script</button><button class="btn secondary" type="button" onclick="saveProject()">Save edited script</button></div><div id="result" class="result"><div class="empty">✦<br><br>Enter a topic and generate a personalized planning framework.</div></div>
@@ -173,7 +173,7 @@ async function accountSignIn(){
  if(!PP_AUTH_ENABLED)return alert('Check config.js: use only the Supabase Project URL (https://YOUR-PROJECT.supabase.co), not an /auth/v1 or /rest/v1 endpoint.');
  try{const email=document.getElementById('accountEmail').value.trim(),password=document.getElementById('accountPassword').value;
  const j=await ppAuthRequest('token?grant_type=password','POST',{email,password});
- j.expires_at=Math.floor(Date.now()/1000)+(j.expires_in||3600);ppSession=j;sessionStorage.setItem('pixelpilot-auth',JSON.stringify(j));ppAuthRender();alert('Signed in successfully!');}
+ j.expires_at=Math.floor(Date.now()/1000)+(j.expires_in||3600);ppSession=j;sessionStorage.setItem('pixelpilot-auth',JSON.stringify(j));ppAuthRender();loadQuota();alert('Signed in successfully!');}
  catch(e){alert(e.message)}
 }
 async function accountSignUp(){
@@ -192,19 +192,38 @@ async function accountResetPassword(){
 }
 async function accountSignOut(){
  if(ppSession?.access_token)await ppAuthRequest('logout','POST',null,ppSession.access_token).catch(()=>{});
- ppSession=null;sessionStorage.removeItem('pixelpilot-auth');ppAuthRender();
+ ppSession=null;sessionStorage.removeItem('pixelpilot-auth');ppAuthRender();loadQuota();
 }
 ppRestore();
 </script>
 <script>
 const state={data:null,tab:'ideas',package:''};
 let adminToken='';
-function setQuota(j){if(Number.isInteger(j.remaining))$('remaining').textContent=j.remaining;const label=document.getElementById('quotaLabel');if(label&&Number.isInteger(j.limit))label.textContent=' of '+j.limit+' remaining '+(j.period==='billing'?'this billing period': 'today (UTC)')+' — '+(j.plan||'free').toUpperCase()+(j.admin?' (Admin testing mode)':'');}
+function setQuota(j){
+ if(j.unlimited===true&&j.admin===true){
+  const label=document.getElementById('quotaLabel');if(label)label.textContent=' · Unlimited developer testing';
+  const legacy=document.getElementById('remaining');if(legacy)legacy.textContent='∞';
+  document.getElementById('usagePlan').textContent='Developer Testing Mode';
+  document.getElementById('usageNumbers').textContent='Unlimited ∞';
+  document.getElementById('usageFill').style.width='0%';
+  document.getElementById('usageDetail').textContent='No PixelPilot generation cap for this verified admin session. Gemini and Netlify provider quotas still apply.';
+  return;
+ }
+ if(!Number.isInteger(j.limit)||!Number.isInteger(j.remaining))return;
+ const limit=j.limit,remaining=Math.max(0,Math.min(limit,j.remaining)),used=limit-remaining;
+ const label=document.getElementById('quotaLabel');if(label)label.textContent=' of '+limit+' remaining '+(j.period==='billing'?'this billing period':'today (UTC)')+' — '+(j.plan||'free').toUpperCase()+(j.admin?' (Admin testing mode)':'');
+ const legacy=document.getElementById('remaining');if(legacy)legacy.textContent=remaining;
+ document.getElementById('usagePlan').textContent=(j.admin?'Admin testing':({creator:'Creator',pro:'Pro',studio:'Studio',free:'Free'}[j.plan]||'Free'))+' Plan';
+ document.getElementById('usageNumbers').textContent=used+' / '+limit+' used · '+remaining+' remaining';
+ document.getElementById('usageFill').style.width=(limit?100*used/limit:0)+'%';
+ let reset='';if(j.period==='billing'&&j.resets){const date=new Date(j.resets);if(!Number.isNaN(date.getTime()))reset=' · Renews '+date.toLocaleDateString();}else reset=' · Resets at 00:00 UTC';
+ document.getElementById('usageDetail').textContent=(remaining===0?'Allowance exhausted.':'Available for new generations.')+reset+' · Counts include requests that consumed a quota, even if generation failed.';
+}
 async function verifyAdmin(){
  const t=$('adminToken').value.trim();
  if(t.length<32){$('adminStatus').textContent='Token must be at least 32 characters.';return;}
  try{const auth=await ppAccessToken();const r=await fetch('/.netlify/functions/generate',{headers:{'x-pixelpilot-admin-token':t,...(auth?{'Authorization':'Bearer '+auth}:{})}});const j=await r.json();
- if(r.ok&&j.admin===true){adminToken=t;$('adminToken').value='';$('adminStatus').textContent='✓ Admin testing enabled for this tab. Separate 12/day allowance; sitewide cap still applies.';setQuota(j);}
+ if(r.ok&&j.admin===true){adminToken=t;$('adminToken').value='';$('adminStatus').textContent='✓ Admin testing enabled for this tab. Admin testing enabled. Check usage meter for active testing allowance.';setQuota(j);}
  else{$('adminStatus').textContent='Token not recognized. Check ADMIN_TEST_TOKEN in Netlify and redeploy.';}
  }catch(e){$('adminStatus').textContent='Unable to verify token. Try again.';}
 }

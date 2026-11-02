@@ -1,0 +1,1 @@
+PixelPilot V12.1: AI Studio live usage meter. Uses existing GET /.netlify/functions/generate endpoint and updates after each generation. Does not change server-side quota rules. Keep your working config.js when deploying. Test a new generation and verify the used count rises. Note: server currently consumes quota before the AI request, so failed requests can also consume quota.
