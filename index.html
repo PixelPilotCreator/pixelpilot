@@ -122,11 +122,12 @@ main,footer{margin-left:248px}#dashboardShell{padding:40px 0 20px}.dashheadline{
 <script>
 /* V10: Supabase Auth via public REST endpoints. No service-role key in browser. */
 const PP_AUTH_URL=(window.PIXELPILOT_PUBLIC_CONFIG||{}).supabaseUrl||'', PP_ANON_KEY=(window.PIXELPILOT_PUBLIC_CONFIG||{}).supabaseAnonKey||'';
-const PP_AUTH_ENABLED=PP_AUTH_URL.startsWith('https://')&&!PP_AUTH_URL.includes('__')&&PP_ANON_KEY.length>30;
+const PP_AUTH_BASE=PP_AUTH_URL.trim().replace(/\/+$/,'').replace(/\/auth\/v1$/i,'').replace(/\/rest\/v1$/i,'');
+const PP_AUTH_ENABLED=/^https:\/\/[^/]+\.supabase\.co$/i.test(PP_AUTH_BASE)&&PP_ANON_KEY.length>30;
 let ppSession=null;
 function ppAuthHeaders(token){return {'apikey':PP_ANON_KEY,'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})};}
 async function ppAuthRequest(path,method,body,token){
- const r=await fetch(PP_AUTH_URL+'/auth/v1/'+path,{method,headers:ppAuthHeaders(token),body:body?JSON.stringify(body):undefined});
+ const r=await fetch(PP_AUTH_BASE+'/auth/v1/'+path,{method,headers:ppAuthHeaders(token),body:body?JSON.stringify(body):undefined});
  const j=await r.json().catch(()=>({}));
  if(!r.ok)throw Error(j.msg||j.error_description||j.message||j.error||'Authentication request failed');
  return j;
@@ -156,14 +157,14 @@ async function ppRestore(){
  ppAuthRender();
 }
 async function accountSignIn(){
- if(!PP_AUTH_ENABLED)return alert('Configure Supabase first.');
+ if(!PP_AUTH_ENABLED)return alert('Check config.js: use only the Supabase Project URL (https://YOUR-PROJECT.supabase.co), not an /auth/v1 or /rest/v1 endpoint.');
  try{const email=document.getElementById('accountEmail').value.trim(),password=document.getElementById('accountPassword').value;
  const j=await ppAuthRequest('token?grant_type=password','POST',{email,password});
  j.expires_at=Math.floor(Date.now()/1000)+(j.expires_in||3600);ppSession=j;sessionStorage.setItem('pixelpilot-auth',JSON.stringify(j));ppAuthRender();alert('Signed in successfully!');}
  catch(e){alert(e.message)}
 }
 async function accountSignUp(){
- if(!PP_AUTH_ENABLED)return alert('Configure Supabase first.');
+ if(!PP_AUTH_ENABLED)return alert('Check config.js: use only the Supabase Project URL (https://YOUR-PROJECT.supabase.co), not an /auth/v1 or /rest/v1 endpoint.');
  try{const email=document.getElementById('accountEmail').value.trim(),password=document.getElementById('accountPassword').value;
  if(password.length<8)return alert('Choose a password with at least 8 characters.');
  const j=await ppAuthRequest('signup','POST',{email,password});
@@ -172,7 +173,7 @@ async function accountSignUp(){
  catch(e){alert(e.message)}
 }
 async function accountResetPassword(){
- if(!PP_AUTH_ENABLED)return alert('Configure Supabase first.');
+ if(!PP_AUTH_ENABLED)return alert('Check config.js: use only the Supabase Project URL (https://YOUR-PROJECT.supabase.co), not an /auth/v1 or /rest/v1 endpoint.');
  const email=document.getElementById('accountEmail').value.trim();if(!email)return alert('Enter your email address first.');
  try{await ppAuthRequest('recover','POST',{email});alert('If this email has an account, a recovery email will be sent.');}catch(e){alert(e.message)}
 }
