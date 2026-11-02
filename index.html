@@ -49,7 +49,7 @@ header{position:sticky;top:0;z-index:5;background:#080b0add;backdrop-filter:blur
 <label for="goal">Main goal</label><select id="goal"><option>Teach something useful</option><option>Get more views</option><option>Build community</option><option>Promote a product or service</option></select>
 <button class="btn" style="width:100%;margin-top:20px" onclick="generate()">Generate script & content plan →</button>
 <button class="btn secondary" style="width:100%;margin-top:10px" onclick="saveProject()">Save project in this browser</button>
-<p class="notice">AI generations: <strong id="remaining">3</strong> of 3 remaining today (UTC). Projects stay in this browser only. Usage is limited per network address.</p>
+<details style="margin-top:16px;border:1px solid #34443a;padding:12px;border-radius:10px"><summary style="cursor:pointer;color:#a6ff4d;font-weight:700">Site owner? Enable Admin Testing Mode</summary><p class="notice">Enter your private admin testing token from Netlify. It stays in this tab's memory only, is not saved to the browser, and is never added to the website files.</p><label for="adminToken">Admin testing token</label><input id="adminToken" type="password" autocomplete="off" placeholder="Paste private admin token"/><div class="editorbar"><button type="button" class="btn secondary" onclick="verifyAdmin()">Verify admin access</button><button type="button" class="btn secondary" onclick="disableAdmin()">Disable admin mode</button></div><p class="notice" id="adminStatus" role="status">Admin mode is off.</p></details><p class="notice">AI generations: <strong id="remaining">3</strong> <span id="quotaLabel">of 3 remaining today (UTC)</span>. Projects stay in this browser only. Usage is limited per network address.</p>
 </div><div class="output"><div class="outputhead"><h3 id="outputTitle">Your results will appear here</h3><span class="live" id="selectedPackage"></span></div>
 <div class="tabs"><button class="tab active" data-tab="ideas">Ideas</button><button class="tab" data-tab="hooks">Hooks</button><button class="tab" data-tab="titles">Titles</button><button class="tab" data-tab="script">Script</button><button class="tab" data-tab="calendar">Calendar</button><button class="tab" data-tab="checklist">Checklist</button></div>
 <div id="scriptTools" class="editorbar" style="display:none"><button class="btn secondary" type="button" onclick="openWorkspace()">⛶ Full-screen script editor</button><button class="btn secondary" type="button" onclick="downloadScript()">↓ Download script</button><button class="btn secondary" type="button" onclick="saveProject()">Save edited script</button></div><div id="result" class="result"><div class="empty">✦<br><br>Enter a topic and generate a personalized planning framework.</div></div>
@@ -66,6 +66,18 @@ header{position:sticky;top:0;z-index:5;background:#080b0add;backdrop-filter:blur
 <footer><div class="wrap foot"><div class="brand"><div class="logo">P</div><div>Pixel<span>Pilot</span></div></div><div>© <span id="year"></span> PixelPilot. Create with intention.</div></div></footer>
 <script>
 const state={data:null,tab:'ideas',package:''};
+let adminToken='';
+function setQuota(j){if(Number.isInteger(j.remaining))$('remaining').textContent=j.remaining;const label=document.getElementById('quotaLabel');if(label&&Number.isInteger(j.limit))label.textContent=' of '+j.limit+' remaining today (UTC)'+(j.admin?' — Admin testing mode':'');}
+async function verifyAdmin(){
+ const t=$('adminToken').value.trim();
+ if(t.length<32){$('adminStatus').textContent='Token must be at least 32 characters.';return;}
+ try{const r=await fetch('/.netlify/functions/generate',{headers:{'x-pixelpilot-admin-token':t}});const j=await r.json();
+ if(r.ok&&j.admin===true){adminToken=t;$('adminToken').value='';$('adminStatus').textContent='✓ Admin testing enabled for this tab. Separate 12/day allowance; sitewide cap still applies.';setQuota(j);}
+ else{$('adminStatus').textContent='Token not recognized. Check ADMIN_TEST_TOKEN in Netlify and redeploy.';}
+ }catch(e){$('adminStatus').textContent='Unable to verify token. Try again.';}
+}
+function disableAdmin(){adminToken='';$('adminToken').value='';$('adminStatus').textContent='Admin mode is off.';loadQuota();}
+
 const $=id=>document.getElementById(id);
 function selectPackage(name){state.package=name;$('selectedPackage').textContent=name+' selected — checkout coming later';$('generator').scrollIntoView({behavior:'smooth'});}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -75,16 +87,16 @@ async function generate(){
  const audience=$('audience').value.trim()||'curious beginners',style=$('style').value,goal=$('goal').value,format=$('format').value,duration=Number($('duration').value);
  const btn=document.querySelector('.controls .btn');btn.disabled=true;btn.textContent='Generating with AI…';$('result').textContent='Creating your content plan. This can take a few seconds.';
  try{
-  const res=await fetch('/.netlify/functions/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic,audience,style,goal,format,duration})});
+  const res=await fetch('/.netlify/functions/generate',{method:'POST',headers:{'Content-Type':'application/json',...(adminToken?{'x-pixelpilot-admin-token':adminToken}:{})},body:JSON.stringify({topic,audience,style,goal,format,duration})});
   const payload=await res.json().catch(()=>({error:'Unexpected server response.'}));
-  if(Number.isInteger(payload.remaining))$('remaining').textContent=payload.remaining;
+  setQuota(payload);
   if(!res.ok)throw new Error(payload.error||'Generation failed.');
   const d=payload.data;
   state.projectId=null;state.projectName=null;state.data={topic,audience,style,goal,format,duration,ideas:d.ideas,hooks:d.hooks,titles:d.titles,script:d.script,calendar:d.calendar,checklist:d.checklist};
   $('outputTitle').textContent='Your AI content plan: '+topic;showTab(state.tab);
  }catch(e){$('result').textContent='Could not generate: '+e.message;}finally{btn.disabled=false;btn.textContent='Generate script & content plan →';}
 }
-async function loadQuota(){try{const r=await fetch('/.netlify/functions/generate');if(r.ok){const j=await r.json();if(Number.isInteger(j.remaining))$('remaining').textContent=j.remaining;}}catch(e){}}
+async function loadQuota(){try{const r=await fetch('/.netlify/functions/generate',{headers:adminToken?{'x-pixelpilot-admin-token':adminToken}:{}});if(r.ok){const j=await r.json();setQuota(j);}}catch(e){}}
 function sectionText(tab){const d=state.data;if(!d)return '';return tab==='script'?d.script:tab==='checklist'?d.checklist.map((x,i)=>`${i+1}. [ ] ${x}`).join('\n'):d[tab].map((x,i)=>tab==='calendar'?x:`${i+1}. ${x}`).join('\n');}
 function showTab(tab){state.tab=tab;$('scriptTools').style.display=state.data&&tab==='script'?'flex':'none';document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));$('result').textContent=state.data?sectionText(tab):'Generate a content plan first.';}
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
