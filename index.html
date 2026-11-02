@@ -23,7 +23,7 @@ header{position:sticky;top:0;z-index:5;background:#080b0add;backdrop-filter:blur
 <div class="card"><div class="featureicon">✦</div><h3>Video ideas</h3><p>Find angles, formats and topics to explore instead of recycling the same idea.</p></div>
 <div class="card"><div class="featureicon">⚡</div><h3>Scroll-stopping hooks</h3><p>Open with a question, bold promise or curiosity gap that fits your video.</p></div>
 <div class="card"><div class="featureicon">▤</div><h3>Video titles</h3><p>Generate title directions that are clear, specific and built around the viewer.</p></div>
-<div class="card"><div class="featureicon">▶</div><h3>AI script drafts</h3><p>Move from intro to main points and close with a call to action.</p></div>
+<div class="card"><div class="featureicon">▶</div><h3>Ready-to-record AI scripts</h3><p>Get spoken-word drafts with natural transitions, recording cues, and a strong closing.</p></div>
 <div class="card"><div class="featureicon">✓</div><h3>Creator checklist</h3><p>Keep planning, recording, editing and publishing steps in one place.</p></div>
 <div class="card"><div class="featureicon">⇩</div><h3>Copy & export</h3><p>Take your results with you. Copy the content or save it as a text file.</p></div>
 </div></div></section>
@@ -32,7 +32,7 @@ header{position:sticky;top:0;z-index:5;background:#080b0add;backdrop-filter:blur
 <div class="pricecard featured"><div class="popular">MOST VALUE</div><div class="tier">PIXELPILOT CREATOR</div><div class="price">$19 <small>/ one-time</small></div><p>A stronger content plan with more angles to test.</p><ul><li>30 video ideas</li><li>10 script frameworks</li><li>30 hooks</li><li>30 title options</li><li>Full creator checklist</li></ul><button class="btn" onclick="selectPackage('PixelPilot Creator')">Choose Creator</button></div>
 <div class="pricecard"><div class="tier">PIXELPILOT STUDIO</div><div class="price">$39 <small>/ one-time</small></div><p>A bigger planning kit for a consistent creator.</p><ul><li>60 video ideas</li><li>20 script frameworks</li><li>60 hooks</li><li>60 title options</li><li>30-day content calendar</li><li>Full creator checklist</li></ul><button class="btn" onclick="selectPackage('PixelPilot Studio')">Choose Studio</button></div>
 </div><p class="notice">Demo storefront: package buttons currently select a package; no payment is collected and no product is delivered.</p></div></section>
-<section class="section" id="generator"><div class="wrap"><div class="sectionhead"><div class="eyebrow">TRY IT OUT</div><h2>Build a content starter pack.</h2><p>Enter a topic and channel style to generate a sample plan. Results are generated using Gemini AI, with a limit of 3 requests per day per network address.</p></div>
+<section class="section" id="generator"><div class="wrap"><div class="sectionhead"><div class="eyebrow">TRY IT OUT</div><h2>Create your next YouTube script.</h2><p>Enter your topic and channel style to generate a spoken-word script and content plan. Results are generated using Gemini AI, with a limit of 3 requests per day per network address.</p></div>
 <div class="generator"><div class="controls"><h3 style="margin:0">Your creator brief</h3>
 <label for="topic">Topic or niche</label><input id="topic" maxlength="120" placeholder="e.g. beginner woodworking tips">
 <label for="audience">Target audience</label><input id="audience" maxlength="120" placeholder="e.g. new DIY hobbyists">
@@ -40,7 +40,7 @@ header{position:sticky;top:0;z-index:5;background:#080b0add;backdrop-filter:blur
 <label for="format">Video format</label><select id="format"><option value="long">YouTube long-form</option><option value="short">YouTube Shorts</option><option value="both">Both formats</option></select>
 <label for="duration">Target length</label><select id="duration"><option value="3">3 minutes</option><option value="5" selected>5 minutes</option><option value="8">8 minutes</option><option value="12">12 minutes</option></select>
 <label for="goal">Main goal</label><select id="goal"><option>Teach something useful</option><option>Get more views</option><option>Build community</option><option>Promote a product or service</option></select>
-<button class="btn" style="width:100%;margin-top:20px" onclick="generate()">Generate content plan →</button>
+<button class="btn" style="width:100%;margin-top:20px" onclick="generate()">Generate script & content plan →</button>
 <button class="btn secondary" style="width:100%;margin-top:10px" onclick="saveProject()">Save project in this browser</button>
 <p class="notice">AI generations: <strong id="remaining">3</strong> of 3 remaining today (UTC). Projects stay in this browser only. Usage is limited per network address.</p>
 </div><div class="output"><div class="outputhead"><h3 id="outputTitle">Your results will appear here</h3><span class="live" id="selectedPackage"></span></div>
@@ -75,7 +75,7 @@ async function generate(){
   const d=payload.data;
   state.data={topic,audience,style,goal,format,duration,ideas:d.ideas,hooks:d.hooks,titles:d.titles,script:d.script,calendar:d.calendar,checklist:d.checklist};
   $('outputTitle').textContent='Your AI content plan: '+topic;showTab(state.tab);
- }catch(e){$('result').textContent='Could not generate: '+e.message;}finally{btn.disabled=false;btn.textContent='Generate content plan →';}
+ }catch(e){$('result').textContent='Could not generate: '+e.message;}finally{btn.disabled=false;btn.textContent='Generate script & content plan →';}
 }
 async function loadQuota(){try{const r=await fetch('/.netlify/functions/generate');if(r.ok){const j=await r.json();if(Number.isInteger(j.remaining))$('remaining').textContent=j.remaining;}}catch(e){}}
 function sectionText(tab){const d=state.data;if(!d)return '';return tab==='script'?d.script:tab==='checklist'?d.checklist.map((x,i)=>`${i+1}. [ ] ${x}`).join('\n'):d[tab].map((x,i)=>tab==='calendar'?x:`${i+1}. ${x}`).join('\n');}
